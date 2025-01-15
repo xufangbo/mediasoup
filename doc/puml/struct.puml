@@ -1,0 +1,106 @@
+@startuml struct
+
+class Channel <<Unix Socket>>
+{
+	readonly #producerSocket: Duplex;
+	readonly #consumerSocket: Duplex;
+    sents: Map<number, Sent>
+    recvBuffer: Buffer
+    async request(...):Promise<Response>
+    consumerSocket.on('data', (buffer: Buffer) => {});
+}
+
+class Worker
+{
+    #child: ChildProcess
+    async createWebRtcServer(data):WebRtcServer
+    async createRouter(data):Router
+}
+
+class WebRtcServer
+{
+    handleWebRtcTransport(WebRtcTransport): void
+}
+
+class Router
+{
+    createWebRtcTransport(data):WebRtcTransport
+    createPlainTransport(data):PlainTransport
+    createPipeTransport(data):PipeTransport
+    createDirectTransport(data):DirectTransport
+}
+
+class Transport
+{
+    observer(): Observer
+    produce(data):Promise<Producer>
+    consume(data):Promise<Consumer>
+    produceData(data):Promise<DataProducer>
+    consumeData(data):Promise<DataConsumer>
+}
+
+class WebRtcTransport
+{
+    iceRole: 'controlled';
+    iceParameters: IceParameters;
+    iceCandidates: IceCandidate[];
+    iceState: IceState;
+    iceSelectedTuple: TransportTuple | undefined;
+    dtlsParameters: DtlsParameters;
+    dtlsState: DtlsState;
+    dtlsRemoteCert: string | undefined;
+    sctpParameters: SctpParameters | undefined;
+    sctpState: SctpState | undefined;
+}
+
+class Producer
+{
+    readonly #channel: Channel
+    send(rtpPacket: Buffer): void
+}
+class DataProducer
+{
+    readonly #channel: Channel
+    send(rtpPacket: Buffer): void
+}
+class Consumer
+{
+    readonly #channel: Channel
+    send(rtpPacket: Buffer): void
+}
+class DataConsumer
+{
+    readonly #channel: Channel
+    send(rtpPacket: Buffer): void
+}
+
+class Transport子类
+{
+
+}
+
+Worker -> Channel  : channel
+Channel --> WebRtcServer : channel
+Channel --> Router : channel
+
+Worker *--> Router : routers
+Worker *--> WebRtcServer : webRtcServers
+
+WebRtcServer  *--> WebRtcTransport : webRtcTransports
+
+Router  *--> Transport : transports
+Router  *--> Producer : producers
+Router  *--> DataProducer : dataProducers
+
+Producer  *-> Transport : producers
+Transport  <-* DataProducer : dataProducers
+
+Transport  *--> Consumer : consumers
+Transport  *--> DataConsumer : dataConsumers
+
+Transport  <|-- Transport子类
+Transport子类  <|-- WebRtcTransport
+Transport子类  <|-- PlainTransprot
+Transport子类  <|-- PipTransport
+Transport子类  <|-- DirectTransport
+@enduml
