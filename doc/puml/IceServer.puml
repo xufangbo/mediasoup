@@ -1,0 +1,50 @@
+@startuml IceServer
+
+enum IceState
+{
+    NEW
+    CONNECTED
+    COMPLETED
+    DISCONNECTED
+}
+
+class IceServer
+{
+    std::string usernameFragment
+    std::string password
+    uint32_t remoteNomination
+    list<RTC::TransportTuple> tuples
+    RTC::TransportTuple* selectedTuple
+
+    void ProcessStunPacket(RTC::StunPacket* packet, tuple)
+    # void ProcessStunRequest(RTC::StunPacket* request, RTC::TransportTuple* tuple)
+    # void ProcessStunIndication(RTC::StunPacket* indication)
+    # void ProcessStunResponse(RTC::StunPacket* response)
+    # void HandleTuple(tuple, bool hasUseCandidate, bool hasNomination, uint32_t nomination)
+}
+
+interface Listener
+{
+    void OnIceServerSendStunPacket(iceServer, packet, tuple)
+    void OnIceServerLocalUsernameFragmentAdded( iceServer,string& usernameFragment)
+    void OnIceServerLocalUsernameFragmentRemoved(iceServer, usernameFragment)
+    void OnIceServerTupleAdded(iceServer, tuple)
+    void OnIceServerTupleRemoved(iceServer, tuple)
+    void OnIceServerSelectedTuple( iceServer, tuple)
+    void OnIceServerConnected(const RTC::IceServer* iceServer)
+    void OnIceServerCompleted(const RTC::IceServer* iceServer)
+    void OnIceServerDisconnected(const RTC::IceServer* iceServer)
+}
+
+class WebRtcTransport
+{
+
+}
+
+IceServer -> Listener : listener
+IceState <- IceServer : state
+
+Listener <|-- WebRtcTransport
+WebRtcTransport -> IceServer : iceServer
+
+@enduml

@@ -1,0 +1,69 @@
+@startuml Producer
+
+class Params
+{
+    size_t encodingIdx
+    uint32_t ssrc
+    std::string rid
+    uint8_t payloadType
+    ' RTC::RtpCodecMimeType mimeType
+    ' uint32_t clockRate    
+    ' std::string cname
+    ' uint32_t rtxSsrc
+    ' uint8_t rtxPayloadType
+    ' bool useNack
+    ' bool usePli
+    ' bool useFir
+    ' bool useInBandFec
+    ' bool useDtx
+    ' uint8_t spatialLayers
+    ' uint8_t temporalLayers
+}
+
+class RtpStream
+{
+
+}
+
+class RtpStream::Listener
+{
+
+}
+
+
+class RtpStreamRecv
+{
+    bool ReceivePacket(RtpPacket* packet)
+}
+
+class RtpStreamRecv::Listener
+{
+
+}
+
+class Producer
+{
+    RtpStreamRecv* GetRtpStream(RtpPacket* packet)
+    RtpStreamRecv* Producer::CreateRtpStream( packet,mediaCodec, encodingIdx)
+}
+
+' --------------------------------------------
+
+Params <- RtpStream
+
+RtpStream <|-- RtpStreamRecv
+RtpStream::Listener <|-- RtpStreamRecv::Listener : listener
+
+RtpStream -> RtpStream::Listener
+RtpStreamRecv -> RtpStreamRecv::Listener : listener
+
+
+RtpStreamRecv::Listener <|-- Producer
+
+RtpStreamRecv <--* Producer : mapSsrcRtpStream
+RtpStreamRecv <--* Producer : rtpStreamByEncodingIdx
+RtpStreamRecv <--* Producer : mapRtxSsrcRtpStream
+RtpStreamRecv <--* Producer : mapRtpStreamMappedSsrc
+' --------------------------------------------
+
+@enduml

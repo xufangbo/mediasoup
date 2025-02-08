@@ -1,0 +1,94 @@
+@startuml Transport
+interface Transport
+{
+    void SendRtpPacket(Consumer*, RtpPacket*, Transport::onSendCallback*)
+    void Transport::ReceiveRtpPacket(RTC::RtpPacket* packet)
+}
+
+class TransportCongestionControlServer
+{
+
+}
+
+' ---------------------------------------
+
+class PlainTransport
+{
+
+}
+note right
+    没有 ICE,没有 DTLS
+    SRTP脱离DTLS独立使用
+end note
+
+class TransportTuple
+{
+
+}
+
+class UdpSocket
+{
+
+}
+
+class SrtpSession
+{
+
+}
+
+' ---------------------------------------
+
+class WebRtcTransport
+{
+    Role dtlsRole
+    void ProcessStunPacketFromWebRtcServer(tuple,packet);
+    void ProcessNonStunPacketFromWebRtcServer(tuple, data, len)
+    void SendSctpData(const uint8_t* data, size_t len)
+}
+note right
+    Package都是
+    ICE相关的
+end note
+
+' ---------------------------------------
+
+TransportCongestionControlServer <- Transport : tccClient
+TransportCongestionControlServer <- Transport : tccServer
+Transport -> SctpAssociation : sctpAssociation
+
+RateCalculator <-- Transport : recv/sendTransmission
+RtpDataCounter <-- Transport : recv/sendRtpTransmission
+RtpDataCounter <-- Transport : sendRtxTransmission
+RtpDataCounter <-- Transport : sendProbationTransmission
+
+' ---------------------------------------
+Transport <|-- PlainTransport
+
+TransportTuple <- PlainTransport : tuple
+TransportTuple <- PlainTransport : rtcpTuple
+
+PlainTransport --> UdpSocket : udpSocket
+PlainTransport --> UdpSocket : rtcpUdpSocket
+
+PlainTransport --> SrtpSession : srtpRecvSession
+PlainTransport --> SrtpSession : srtpSendSession
+
+' ---------------------------------------
+Transport <|-- WebRtcTransport
+
+WebRtcTransport --> IceServer
+IceCandidate <-* WebRtcTransport : iceCandidates
+
+WebRtcTransport --> SrtpSession : srtpRecvSession
+WebRtcTransport --> SrtpSession : srtpSendSession
+
+WebRtcTransport --> DtlsTransport : dtlsTransport
+
+WebRtcTransport --> UdpSocket : udpSockets
+WebRtcTransport --> TcpServer : tcpServers
+
+' ---------------------------------------
+
+' ---------------------------------------
+
+@enduml

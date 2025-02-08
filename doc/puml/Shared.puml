@@ -1,0 +1,156 @@
+@startuml
+
+class Worker #Gold
+{
+    Worker(ChannelSocket* channel)
+    void HandleRequest(ChannelRequest* request)
+    void HandleNotification(ChannelNotification* notification)
+}
+note bottom #Gold
+在HandleRequest方法的switch中
+1. 会创建WebRtcServer、Router对象，在构造中传入shared
+2. 默认根据id获取RequestHandler调用其HandleRequest方法
+另：HandleNotification()方法的逻辑相同
+end note
+
+class Shared #Gold
+{
+}
+
+
+class ChannelMessageRegistrator #Gold
+{
+    void RegisterHandler(string id, RequestHandler, NotificationHandler*)
+}
+note bottom #Gold
+在RequestHandler和NotifactionHandler子类
+的构造函数中自己主动注册
+end note
+
+class ChannelNotifier #Gold
+{
+    void Emit(string targetId, Event event)
+}
+note top
+Emit收到数据后调用channel.Send()
+最终通过channelWriteFn
+或者producerSocket发出去
+end note
+
+' ----------------------------------------------
+
+interface RequestHandler <<Channel::ChannelSocket>>  #LightGreen
+{
+    void HandleRequest(ChannelRequest* request)
+}
+
+interface NotificationHandler << Channel::ChannelSocket>>  #LightGreen
+{
+    void HandleNotification(ChannelNotification* notification)
+}
+
+' ----------------------------------------------
+
+class ChannelSocket <<Channel>> #LightGreen
+{
+    uv_async_t* uvReadHandle
+    ChannelReadFn channelReadFn
+    ChannelReadCtx channelReadCtx
+    ChannelWriteFn channelWriteFn
+    ChannelWriteCtx channelWriteCtx
+
+    void Send(data, dataLen)
+    bool CallbackRead()
+}
+note left 
+1. CallbackRead中创建ChannelRequest
+   listener.HandleRequest(.)
+2. mediasoup_worker_run()函数中持有
+   DepLibUV::RunLoop()会阻塞线程   
+   会创建Worker,传入channel参数
+end note
+
+class ChannelSocket::Listener  #LightGreen
+{
+
+}
+
+class ConsumerSocket::Listener
+{
+
+}
+
+class UnixStreamSocketHandle
+{
+    void Write(const uint8_t* data, size_t len)
+    void OnUvRead(ssize_t nread, uv_buf_t* buf)
+}
+
+class ConsumerSocket <<收>> #LightPink
+{
+}
+
+class ProducerSocket <<发>>  #LightPink
+{
+}
+
+class ChannelRequest #LightCoral
+{
+    void Send(data,len)
+    void Accept(FBS::Response::Body, flatbuffers::Offset<Body>)
+}
+note bottom
+通过HandleRequest方法作为参数传递
+构造返回的FBS后被调用Accept()方法
+接着调用Send()樊出去
+end note
+
+
+
+' ----------------------------------------------
+
+Worker -> Shared : shared
+Shared --> ChannelMessageRegistrator : channelMessageRegistrator
+ChannelNotifier <-- Shared  : channelNotifier
+Worker -.> ChannelRequest
+ChannelSocket <- ChannelRequest  : channel
+
+ChannelMessageRegistrator *--> RequestHandler : mapChannelRequestHandlers
+ChannelMessageRegistrator *--> NotificationHandler : mapChannelNotificationHandlers
+
+ChannelSocket <- ChannelNotifier : channel
+ConsumerSocket::Listener <|-- ChannelSocket
+UnixStreamSocketHandle <|-- ConsumerSocket
+UnixStreamSocketHandle <|-- ProducerSocket
+ConsumerSocket -> ConsumerSocket::Listener
+uv_pipe_t <- UnixStreamSocketHandle : uvHandle
+
+ConsumerSocket <-- ChannelSocket : consumerSocket
+ProducerSocket <-- ChannelSocket : producerSocket
+
+' ------------------------
+
+RequestHandler <|-- WebRtcServer
+RequestHandler <|-- Router
+RequestHandler <|-- RtpObserver
+RequestHandler <|-- Producer
+RequestHandler <|-- Consumer
+RequestHandler <|-- DataProducer
+RequestHandler <|-- DataConsumer
+RequestHandler <|-- Transport
+
+NotificationHandler <|-- Transport
+NotificationHandler <|-- Producer
+NotificationHandler <|-- DataProducer
+
+' -----------------------------------
+ChannelSocket ..> ChannelRequest 
+ChannelRequest <. RequestHandler
+ChannelSocket --> ChannelSocket::Listener 
+ChannelSocket::Listener --|> RequestHandler
+ChannelSocket::Listener --|> NotificationHandler
+
+' --------------------------------------
+ChannelSocket::Listener <|- Worker
+
+@enduml
