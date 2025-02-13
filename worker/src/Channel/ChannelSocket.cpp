@@ -51,8 +51,7 @@ namespace Channel
 
 		this->uvReadHandle->data = static_cast<void*>(this);
 
-		err =
-		  uv_async_init(DepLibUV::GetLoop(), this->uvReadHandle, reinterpret_cast<uv_async_cb>(onAsync));
+		err = uv_async_init(DepLibUV::GetLoop(), this->uvReadHandle, reinterpret_cast<uv_async_cb>(onAsync));
 
 		if (err != 0)
 		{

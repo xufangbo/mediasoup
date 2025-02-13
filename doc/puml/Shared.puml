@@ -6,7 +6,7 @@ class Worker #Gold
     void HandleRequest(ChannelRequest* request)
     void HandleNotification(ChannelNotification* notification)
 }
-note bottom #Gold
+note bottom 
 在HandleRequest方法的switch中
 1. 会创建WebRtcServer、Router对象，在构造中传入shared
 2. 默认根据id获取RequestHandler调用其HandleRequest方法
@@ -18,16 +18,16 @@ class Shared #Gold
 }
 
 
-class ChannelMessageRegistrator #Gold
+class ChannelMessageRegistrator #LightGreen
 {
     void RegisterHandler(string id, RequestHandler, NotificationHandler*)
 }
-note bottom #Gold
+note bottom 
 在RequestHandler和NotifactionHandler子类
 的构造函数中自己主动注册
 end note
 
-class ChannelNotifier #Gold
+class ChannelNotifier <<发>> #lightblue
 {
     void Emit(string targetId, Event event)
 }
@@ -51,13 +51,13 @@ interface NotificationHandler << Channel::ChannelSocket>>  #LightGreen
 
 ' ----------------------------------------------
 
-class ChannelSocket <<Channel>> #LightGreen
+class ChannelSocket << 收/发 >> #Gold
 {
     uv_async_t* uvReadHandle
-    ChannelReadFn channelReadFn
-    ChannelReadCtx channelReadCtx
-    ChannelWriteFn channelWriteFn
-    ChannelWriteCtx channelWriteCtx
+    ' ChannelReadFn channelReadFn
+    ' ChannelReadCtx channelReadCtx
+    ' ChannelWriteFn channelWriteFn
+    ' ChannelWriteCtx channelWriteCtx
 
     void Send(data, dataLen)
     bool CallbackRead()
@@ -75,22 +75,22 @@ class ChannelSocket::Listener  #LightGreen
 
 }
 
-class ConsumerSocket::Listener
+class ConsumerSocket::Listener  #LightGreen
 {
 
 }
 
-class UnixStreamSocketHandle
+class UnixStreamSocketHandle #Gold
 {
     void Write(const uint8_t* data, size_t len)
     void OnUvRead(ssize_t nread, uv_buf_t* buf)
 }
 
-class ConsumerSocket <<收>> #LightPink
+class ConsumerSocket <<收>> #LightGreen
 {
 }
 
-class ProducerSocket <<发>>  #LightPink
+class ProducerSocket <<发>>  #lightblue
 {
 }
 

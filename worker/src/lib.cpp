@@ -49,8 +49,7 @@ extern "C" int mediasoup_worker_run(
 	{
 		if (channelReadFn)
 		{
-			channel.reset(
-			  new Channel::ChannelSocket(channelReadFn, channelReadCtx, channelWriteFn, channelWriteCtx));
+			channel.reset( new Channel::ChannelSocket(channelReadFn, channelReadCtx, channelWriteFn, channelWriteCtx));
 		}
 		else
 		{

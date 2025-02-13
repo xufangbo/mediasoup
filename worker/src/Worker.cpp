@@ -29,8 +29,8 @@ Worker::Worker(::Channel::ChannelSocket* channel) : channel(channel)
 
 	// Set up the RTC::Shared singleton.
 	this->shared = new RTC::Shared(
-	  /*channelMessageRegistrator*/ new ChannelMessageRegistrator(),
-	  /*channelNotifier*/ new Channel::ChannelNotifier(this->channel));
+	   new ChannelMessageRegistrator(),/*channelMessageRegistrator*/
+	   new Channel::ChannelNotifier(this->channel)/*channelNotifier*/);
 
 #ifdef MS_EXECUTABLE
 	{
