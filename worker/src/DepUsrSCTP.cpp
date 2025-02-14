@@ -73,6 +73,17 @@ void DepUsrSCTP::ClassInit()
 
 	if (GlobalInstances == 0)
 	{
+		/**
+		1. 第一个参数 (0):
+			这个参数通常用来指定 SCTP 协议栈使用的端口号。传递 0 意味着使用默认的 SCTP 端口（通常是 9899）。
+			然而，在某些上下文中，这个值可能指示库不要绑定到一个具体的端口或者使用其默认行为。
+		2. 第二个参数 (onSendSctpData):
+			这是一个回调函数，当 SCTP 需要发送数据时会被调用。这个函数是你实现的，用于处理如何将 SCTP 数据包实际发送出去。
+			在 mediasoup 或者其他应用中，这通常涉及到通过已建立的 DTLS 会话发送数据。
+		3. 第三个参数 (sctpDebug):
+			这是另一个回调函数，用于调试目的。每当 SCTP 协议栈中有调试信息需要输出时，就会调用这个函数。
+			这允许开发者捕获详细的 SCTP 内部工作情况，对于排查问题或理解 SCTP 行为非常有用。
+		 */
 		usrsctp_init_nothreads(0, onSendSctpData, sctpDebug);
 
 		// Disable explicit congestion notifications (ecn).
